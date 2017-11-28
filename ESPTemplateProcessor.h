@@ -13,7 +13,7 @@ class ESPTemplateProcessor {
     {
     }
 
-    bool send(const String& filePath, ProcessorCallback& processor)
+    bool send(const String& filePath, ProcessorCallback& processor, char bookend = '%')
     {
       // Open file.
       if(!SPIFFS.exists(filePath)) {
@@ -44,7 +44,7 @@ class ESPTemplateProcessor {
         ch = char(val);
         
         // Lookup expansion.
-        if (ch == '%') {
+        if (ch == bookend) {
           // Clear out buffer.
           server.sendContent(buffer);
           buffer = "";
@@ -55,7 +55,7 @@ class ESPTemplateProcessor {
           bool found = false;
           while (!found && (val = file.read()) != -1) {
             ch = char(val);
-            if (ch == '%') {
+            if (ch == bookend) {
               found = true;
             } else {
               keyBuffer += ch;
