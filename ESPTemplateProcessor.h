@@ -13,17 +13,21 @@ class ESPTemplateProcessor {
     {
     }
 
-    bool send(const String& filePath, ProcessorCallback& processor, char bookend = '%')
+    bool send(const String& filePath, ProcessorCallback& processor, char bookend = '%', bool silentSerial = false)
     {
       // Open file.
       if(!SPIFFS.exists(filePath)) {
-        Serial.print("Cannot process "); Serial.print(filePath); Serial.println(": Does not exist.");
+        if(!silentSerial) {
+          Serial.print("Cannot process "); Serial.print(filePath); Serial.println(": Does not exist.");
+        }
         return false;
       }
 
       File file = SPIFFS.open(filePath, "r");
       if (!file) {
-        Serial.print("Cannot process "); Serial.print(filePath); Serial.println(": Failed to open.");
+        if(!silentSerial) {
+          Serial.print("Cannot process "); Serial.print(filePath); Serial.println(": Failed to open.");
+        }
         return false;
       }
 
@@ -64,13 +68,17 @@ class ESPTemplateProcessor {
           
           // Check for bad exit.
           if (val == -1 && !found) {
-            Serial.print("Cannot process "); Serial.print(filePath); Serial.println(": Unable to parse.");
+            if(!silentSerial) {
+              Serial.print("Cannot process "); Serial.print(filePath); Serial.println(": Unable to parse.");
+            }
             return false;
           }
 
           // Get substitution
           String processed = processor(keyBuffer);
-          Serial.print("Lookup '"); Serial.print(keyBuffer); Serial.print("' received: "); Serial.println(processed);
+          if(!silentSerial) {
+            Serial.print("Lookup '"); Serial.print(keyBuffer); Serial.print("' received: "); Serial.println(processed);
+          }
           server.sendContent(processed);
         } else {
           bufferLen++;
@@ -88,7 +96,9 @@ class ESPTemplateProcessor {
         server.sendContent("");
         return true;
       } else {
-        Serial.print("Failed to process '"); Serial.print(filePath); Serial.println("': Didn't reach the end of the file.");
+        if(!silentSerial) {
+          Serial.print("Failed to process '"); Serial.print(filePath); Serial.println("': Didn't reach the end of the file.");
+        }
       }
     }
 
