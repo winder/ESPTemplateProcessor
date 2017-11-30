@@ -1,14 +1,22 @@
+#ifdef ESP8266
+#define WebServer ESP8266WebServer
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
+#else
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <WebServer.h>
+#include <ESPmDNS.h>
+#endif
 
-#include "ESPTemplateProcessor.h"
+#include <ESPTemplateProcessor.h>
 
 const char* ssid = "........";
 const char* password = "........";
 
-ESP8266WebServer server(80);
+WebServer server(80);
 
 const int led = 13;
 
