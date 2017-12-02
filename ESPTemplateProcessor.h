@@ -13,7 +13,14 @@ class ESPTemplateProcessor {
     {
     }
 
-    bool send(const String& filePath, ProcessorCallback& processor, char bookend = '%', bool silentSerial = false)
+    bool send(const String& filePath, ProcessorCallback& processor, 
+              char bookend = '%', bool silentSerial = false, bool allowYield = false, int payloadSize = 101)
+    /*Optional parameters
+    bookend - custom specify what character bookend will be searched for during replacement
+    silentSerial - turn off serial responses
+    allowYield - allow method to yeild to give ESP a chance to handle wifi stuff (does not work with AsycESPWebserver)
+    payloadSize - allow setting of a custom payload size, bigger is better if you stack has room to support it, default 100
+    */
     {
       // Open file.
       if(!SPIFFS.exists(filePath)) {
@@ -38,8 +45,9 @@ class ESPTemplateProcessor {
       //server.sendContent(<chunk>)
 
       // Process!
-      static const uint16_t MAX = 100;
+      static const uint16_t MAX = (payloadSize - 1);
       String buffer;
+      buffer.reserve(payloadSize);
       int bufferLen = 0;
       String keyBuffer;
       int val;
@@ -51,6 +59,8 @@ class ESPTemplateProcessor {
         if (ch == bookend) {
           // Clear out buffer.
           server.sendContent(buffer);
+          if (allowYield)
+            yeild();
           buffer = "";
           bufferLen = 0;
 
@@ -80,11 +90,15 @@ class ESPTemplateProcessor {
             Serial.print("Lookup '"); Serial.print(keyBuffer); Serial.print("' received: "); Serial.println(processed);
           }
           server.sendContent(processed);
+          if (allowYield)
+            yield();
         } else {
           bufferLen++;
           buffer += ch;
           if (bufferLen >= MAX) {
             server.sendContent(buffer);
+            if (allowYield)
+              yield();
             bufferLen = 0;
             buffer = "";
           }
@@ -94,6 +108,8 @@ class ESPTemplateProcessor {
       if (val == -1) {
         server.sendContent(buffer);
         server.sendContent("");
+        if (allowYield)
+          yield();
         return true;
       } else {
         if(!silentSerial) {
