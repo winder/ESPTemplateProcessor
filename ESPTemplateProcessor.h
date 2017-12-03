@@ -46,10 +46,12 @@ class ESPTemplateProcessor {
 
       // Process!
       static const uint16_t MAX = (payloadSize - 1);
-      String buffer;
+      static String buffer;
+      buffer = "";
       buffer.reserve(payloadSize);
       int bufferLen = 0;
-      String keyBuffer;
+      static String keyBuffer;
+      keyBuffer = "";
       int val;
       char ch;
       while ((val = file.read()) != -1) {
